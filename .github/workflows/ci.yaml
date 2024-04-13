@@ -42,6 +42,6 @@ jobs:
       - id: 'upload-static-files'
         uses: 'google-github-actions/upload-cloud-storage@v1'
         with:
-          path: 'public'
+          path: 'index'
           destination: '1660_bucket_assignment_5'
           parent: false
