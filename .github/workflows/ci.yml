@@ -1,0 +1,47 @@
+name: Static Site
+
+on:
+  push:
+    branches:
+      - main  # Set a branch to deploy
+      - gha-service-account
+  pull_request:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true  # Fetch Hugo themes (true OR recursive)
+          fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: '0.119.0'
+
+      # - name: Build
+      #   run: hugo --minify
+
+      # configure gcloud `setup-gcloud` automatically
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          workload_identity_provider: 'projects/871838705968/locations/global/workloadIdentityPools/github/providers/my-repo'
+          service_account: 'assignment5serviceaccount@cs1660assignment5.iam.gserviceaccount.com'
+
+      # upload files to GCS
+      - id: 'upload-static-files'
+        uses: 'google-github-actions/upload-cloud-storage@v1'
+        with:
+          path: 'public'
+          destination: '1660_bucket_assignment_5'
+          parent: false
